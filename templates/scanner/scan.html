@@ -72,6 +72,9 @@
                         <button type="button" onclick="domain_list()" class="btn btn-primary">
                           Sadece Domain Görüntüle
                         </button>
+                        <button type="button" onclick="delete_duplicate_domains()" class="btn btn-primary">
+                          Çift domainleri temizle
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -90,6 +93,7 @@
     <script>
       totaldork()
       var scanned = 0;
+      var domain_list_info = false;
       function totaldork(){
         const dorklist = document.getElementById('dorklist');
         const lines = dorklist.value.split('\n')
@@ -106,6 +110,28 @@
               let domain = (new URL(nonEmptyLines[i]));
               result.value += domain.hostname + "\n"
             } 
+        domain_list_info = true;
+      }
+      function delete_duplicate_domains() {
+        const results = document.getElementById('result');
+        const lines = results.value.split('\n')
+        const nonEmptyLines = lines.filter(line => line.trim() !== '');
+        let domains = [];
+        for (let i = 0; i < nonEmptyLines.length; i++) {
+          if(domain_list_info == false){
+            var domain = (new URL(nonEmptyLines[i])).hostname;
+          }
+          else{
+            var domain = nonEmptyLines[i];
+          }
+          domains.push(domain);
+        }
+        let domainSet = new Set(domains);
+        domains = [...domainSet];
+        results.value = "";
+        for (let domain of domains) {
+          results.value += domain + "\n";
+        }
       }
       function loadingscreen(){
         $('.container-fluid').waitMe({
@@ -116,7 +142,7 @@
         });
       }
       function scan_list(){
-        
+        scanned = 0;
         const dorklist = document.getElementById('dorklist');
         const lines = dorklist.value.split('\n')
         const nonEmptyLines = lines.filter(line => line.trim() !== '');
