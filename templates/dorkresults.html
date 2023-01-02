@@ -1,0 +1,229 @@
+{% load static%}
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+  {%include 'still/head.html' %}
+
+  <body>
+
+    {%include 'still/sidebar.html' %}
+      <div class="page-wrapper">
+        <div class="page-breadcrumb">
+          <div class="row">
+            <div class="col-12 d-flex no-block align-items-center">
+              <h4 class="page-title">Dorklar</h4>
+            </div>
+          </div>
+        </div>
+       
+        <div class="container-fluid">
+         
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title mb-0">Üretilen Dorklar</h5>
+                  <button type="button" id="table2txt" class="btn btn-primary" onclick="table2txt()">
+                    TXT Görünümü
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="dork2scan()">
+                      Seçilenleri Dork Tarayıcıya ilet
+                      </button>
+                </div>
+                <div class="table-responsive">
+                  <div class="col-sm">
+                    <textarea id="txt" style="display:none;height: 500px; "class="form-control"></textarea>
+                  </div>
+                  <table class="table">
+                    <thead class="thead-light">
+                      <tr>
+                        <th>
+                          <label class="customcheckbox mb-3">
+                            <input type="checkbox" id="mainCheckbox" />
+                            <span class="checkmark"></span>
+                          </label>
+                        </th>
+                        <th scope="col">Dork</th>
+                        <th scope="col">Kelime</th>
+                        <th scope="col">Domain Ülkesi-Uzantısı</th>
+                        <th scope="col">Işlem</th>
+                      </tr>
+                    </thead>
+                    <tbody class="customtable">
+                      {% for dork in context%}
+                      <tr>
+                        <th>
+                          <label class="customcheckbox">
+                            <input type="checkbox" class="listCheckbox" />
+                            <span class="checkmark"></span>
+                          </label>
+                        </th>
+                        <td class="dork">{{dork.dork}}</td>
+                        <td>{{dork.keyword}}</td>
+                        <td>{{ctry.country}}-{{ctry.domain}}</td>
+                        <td><button type="button" class="btn btn-primary" onclick="wordtrend('{{dork.keyword}}')"data-mdb-toggle="modal" data-mdb-target="#keytrend">
+                          Trend Sorgula
+                        </button>
+                        </td>
+                      </tr>
+                      {%endfor%}
+                      
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+             
+          </div>
+
+          <div class="modal fade" id="#keytrend" tabindex="-1" aria-labelledby="KeyTrend" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="KeyTrend">Kelime Trendi</h5>
+                  
+
+                  <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <canvas id="trendChart" style="width:100%;max-width:100%"></canvas>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" onclick="closewordtrend()" data-mdb-dismiss="modal">kapat</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+       {%include 'still/footer.html'%}
+      </div>
+
+    </div>
+    <script>
+      function dork2scan(){
+        loadingscreen()
+
+        var txt = document.getElementById("txt");
+        txt.value = ""
+        var dorks = document.getElementsByClassName("listCheckbox");
+        for (let i = 0; i < dorks.length; i++) {
+            if(dorks[i].checked){
+          txt.value += document.getElementsByClassName("dork")[i].innerText + "\n"
+          }
+        }
+        $.ajax({
+				url: '{% url "scanner"  %}',
+				type: 'POST',
+				data: { 
+					csrfmiddlewaretoken: "{{ csrf_token }}",
+          dorks:$("#txt").val()
+				},
+				success: function (gelenveri) {
+          $('.container-fluid').waitMe(("hide"));
+          document.open();
+        document.write(gelenveri);
+        document.close();
+				},
+				error: function (hata) {
+          $('.container-fluid').waitMe(("hide"));
+          Swal.fire({
+            icon: 'error',
+            title: 'Bir hata ile karşılaştık.',
+            text: 'Dork tarayıcıya iletilemedi.',})
+				}
+			});
+		}
+      
+      function wordtrend(key){
+
+        loadingscreen()
+
+
+        $.ajax({
+				url: '{% url "AjaxTrendQuery"  %}',
+				type: 'POST',
+				data: { 
+					csrfmiddlewaretoken: "{{ csrf_token }}",
+					word: key
+          
+				},
+       
+				success: function (gelenveri) {
+          $('.container-fluid').waitMe(("hide"));
+          var date = gelenveri.map(function(element) {
+            return element[0];
+          });
+
+          var trending = gelenveri.map(function(element) {
+            return element[1];
+          });
+
+          var min = Math.min.apply(null, trending),
+           max = Math.max.apply(null, trending);
+          
+          new Chart("trendChart", {
+            type: "line",
+            data: {
+              labels: date,
+              datasets: [{
+                fill: false,
+                lineTension: 0,
+                backgroundColor: "rgba(0,0,255,1.0)",
+                borderColor: "rgba(0,0,255,0.1)",
+                data: trending
+              }]
+            },
+            options: {
+              legend: {display: false},
+              scales: {
+                yAxes: [{ticks: {min: min, max:max}}],
+              }
+            }
+          });
+          $(document).ready(function(){
+          $('.modal').modal('show');
+        });
+				},
+				error: function (hata) {
+          $('.container-fluid').waitMe(("hide"));
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Herhangi bir trend verisi bulunamadı. Trend verisi için random oluşturulan kelimeler yerine wordlistinizde yer alan anlamlı kelimeleri sorgulamayı deneyebilirsiniz.',          })
+				}
+			});
+        
+      }
+      function loadingscreen(){
+        $('.container-fluid').waitMe({
+        effect : 'bounce',
+        text : '',
+        bg : 'rgba(255,255,255,0.7)',
+        color : '#000'
+        });
+      }
+      function closewordtrend(){
+      $(document).ready(function(){
+        $('.modal').modal('hide');
+    });
+    }
+
+    function table2txt(){
+      var txt = document.getElementById("txt");
+      var table = document.getElementsByClassName("table")[0];
+      if(txt.style.display == "none"){
+        document.getElementById("table2txt").innerText = "Tablo Görünümü";
+        txt.style.display = "block"
+        table.style.display = "none"
+        var dorklist = document.getElementsByClassName("dork")
+        for (let i = 0; i < dorklist.length; i++) {
+          txt.value = txt.value + dorklist[i].innerText +"\n"
+        } 
+      }
+      else{
+        document.getElementById("table2txt").innerText = "TXT Görünümü";
+        txt.value = ""
+        txt.style.display = "none"
+        table.style.display = ""
+      }
+      
+    }
+    </script>
+  </body>
+</html>

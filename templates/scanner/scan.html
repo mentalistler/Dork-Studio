@@ -1,0 +1,164 @@
+{%load static%}
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+    {% include 'still/head.html'%}
+  <body>
+    {% include 'still/sidebar.html'%}
+      <div class="page-wrapper">
+        <div class="page-breadcrumb">
+          <div class="row">
+            <div class="col-12 d-flex no-block align-items-center">
+              <h4 class="page-title">Dork Tara</h4>
+            </div>
+          </div>
+        </div>
+        
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card">
+                <form class="form-horizontal">
+                  <div class="card-body">
+                    <h4 class="card-title">Dork Tara</h4>
+                    <div class="form-group">
+                      <label
+                        for="cono1"
+                        class="col-sm text-end control-label col-form-label"
+                        >Taranacak Dorklar</label
+                      >
+                      <div class="col-sm">
+                        <textarea id="dorklist"  onkeyup="totaldork()" style="height: 500px; "class="form-control">{{dorks|default:''}}</textarea>
+                      </div>
+                    </div>
+                  </div>
+                    
+                  <div class="border-top">
+                    <div class="card-body">
+                      <button type="button" onclick="scan_list()" class="btn btn-primary">
+                        Tara
+                      </button>
+                      <div class="card-body">
+                        <center>
+                        <div class="form-group">
+                          <label
+                          class="col-sm text-end control-label col-form-label"
+                          >Toplam Dork Sayısı:</label>
+                          <label
+                          id="toplamdork"
+                          class="col-sm text-end control-label col-form-label"
+                          >0 </label>
+                          <label
+                          class="col-sm text-end control-label col-form-label"
+                          > | </label>
+                          
+                          <label
+                          class="col-sm text-end control-label col-form-label"
+                          >Taranan Dork Sayısı:</label>
+                          <label
+                          id="taranandork"
+                          class="col-sm text-end control-label col-form-label"
+                          >0</label>
+                              </div>
+                          </div></center>
+                      <div class="form-group">
+                        <label
+                          for="cono1"
+                          class="col-sm text-end control-label col-form-label"
+                          >Sonuçlar</label
+                        >
+                        <div class="col-sm">
+                          <textarea id="result" style="height: 500px; "class="form-control"></textarea>
+                        </div>
+                        <button type="button" onclick="domain_list()" class="btn btn-primary">
+                          Sadece Domain Görüntüle
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+             
+            </div>
+          </div>
+
+        </div>
+       {%include 'still/footer.html' %}
+      </div>
+
+    </div>
+
+    <script>
+      totaldork()
+      var scanned = 0;
+      function totaldork(){
+        const dorklist = document.getElementById('dorklist');
+        const lines = dorklist.value.split('\n')
+        const nonEmptyLines = lines.filter(line => line.trim() !== '');
+        document.getElementById('toplamdork').innerText = nonEmptyLines.length
+        
+      }
+      function domain_list(){
+        const results = document.getElementById('result');
+        const lines = results.value.split('\n')
+        const nonEmptyLines = lines.filter(line => line.trim() !== '');
+        results.value = ""
+        for (let i = 0; i < nonEmptyLines.length; i++) {
+              let domain = (new URL(nonEmptyLines[i]));
+              result.value += domain.hostname + "\n"
+            } 
+      }
+      function loadingscreen(){
+        $('.container-fluid').waitMe({
+        effect : 'bounce',
+        text : '',
+        bg : 'rgba(255,255,255,0.7)',
+        color : '#000'
+        });
+      }
+      function scan_list(){
+        
+        const dorklist = document.getElementById('dorklist');
+        const lines = dorklist.value.split('\n')
+        const nonEmptyLines = lines.filter(line => line.trim() !== '');
+        for (let i = 0; i < nonEmptyLines.length; i++) {
+              scan(nonEmptyLines[i])
+            } 
+        
+      }
+      function scan(_dork){
+        loadingscreen()
+        $.ajax({ 
+          url: '{% url "AjaxDorkScan"  %}',
+          type: 'POST',
+          data: { 
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+            dork: _dork
+            
+          },
+        
+          success: function (gelenveri) {
+            var result = document.getElementById("result")
+            for (let i = 0; i < gelenveri.length; i++) {
+              var decodedUrl = decodeURIComponent(gelenveri[i]);
+              result.value += decodedUrl +"\n"
+            } 
+            scanned +=1;
+            document.getElementById("taranandork").innerText = scanned;
+            if(document.getElementById("toplamdork").innerText == document.getElementById("taranandork").innerText){
+              $('.container-fluid').waitMe(("hide"));
+            }
+          },
+          error: function (hata) {
+            $('.container-fluid').waitMe(("hide"));
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'Dork taranırken bir hata ile karşılaşıldı.',
+            })
+          }
+        });
+    }
+    </script>
+
+  </body>
+</html>

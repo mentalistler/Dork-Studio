@@ -1,0 +1,65 @@
+{%load static%}
+<div class="preloader">
+    <div class="lds-ripple">
+      <div class="lds-pos"></div>
+      <div class="lds-pos"></div>
+    </div>
+  </div>
+
+  <div
+    id="main-wrapper"
+    data-layout="vertical"
+    data-navbarbg="skin5"
+    data-sidebartype="full"
+    data-sidebar-position="absolute"
+    data-header-position="absolute"
+    data-boxed-layout="full"
+  >
+
+<aside class="left-sidebar" data-sidebarbg="skin5" style="padding:0px;">
+    <div class="scroll-sidebar">
+      <nav class="sidebar-nav">
+        <ul id="sidebarnav" class="pt-4">
+          <li class="sidebar-item">
+            <a
+              class="sidebar-link waves-effect waves-dark sidebar-link"
+              href="{% url 'dorker'%}"
+              aria-expanded="false"
+              ><i class="mdi mdi-view-dashboard"></i
+              ><span class="hide-menu">Dork Üretici</span></a
+            >
+          </li>
+          <li class="sidebar-item">
+            <a
+              class="sidebar-link waves-effect waves-dark sidebar-link"
+              href="{%url 'wordlistdetail'%}"
+              aria-expanded="false"
+              ><i class="mdi mdi-receipt"></i
+              ><span class="hide-menu">Wordlist</span></a
+            >
+          </li>
+          <li class="sidebar-item">
+            <a
+              class="sidebar-link waves-effect waves-dark sidebar-link"
+              href="{% url 'dorklist'%}"
+              aria-expanded="false"
+              ><i class="mdi mdi-relative-scale"></i
+              ><span class="hide-menu">Dork Listesi</span></a
+            >
+          </li>
+
+          <li class="sidebar-item">
+            <a
+              class="sidebar-link waves-effect waves-dark sidebar-link"
+              href="{% url 'scanner'%}"
+              aria-expanded="false"
+              ><i class="mdi mdi-move-resize-variant"></i
+              ><span class="hide-menu">Dork Tarayıcı</span></a
+            >
+          </li>
+        </ul>
+      
+      </nav>
+    </div>
+
+  </aside>
