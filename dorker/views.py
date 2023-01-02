@@ -4,8 +4,6 @@ from .models import *
 import dorker.dorkprocess as dorkprocess
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-def index(request):
-    return render(request, 'dashboard.html')
 
 def dorker(request):
     dorks = dorktype.objects.all()
