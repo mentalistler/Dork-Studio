@@ -30,7 +30,10 @@ class dscr:
         user_agent = {'User-agent': useragent.get_useragent()}
         response = requests.get(f"https://html.duckduckgo.com/html/?q={query}",headers=user_agent)
         urls = re.findall(r'<a class="result__url" href="(.+?)">', response.text)
-        return urls
+        for i in range(len(urls)):
+            if urls[i].startswith('//duckduckgo.com/l/?uddg='):
+                real_url = re.search(r'uddg=(.+?)&', urls[i]).group(1)
+                urls[i] = real_url
     def search_ask(self,query):
         user_agent = {'User-agent': useragent.get_useragent()}
         response = requests.get(f"https://www.ask.com/web?q={query}",headers=user_agent)
