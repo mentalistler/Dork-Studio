@@ -34,7 +34,7 @@ class dscr:
             if urls[i].startswith('//duckduckgo.com/l/?uddg='):
                 real_url = re.search(r'uddg=(.+?)&', urls[i]).group(1)
                 urls[i] = real_url
-         return urls
+        return urls
     def search_ask(self,query):
         user_agent = {'User-agent': useragent.get_useragent()}
         response = requests.get(f"https://www.ask.com/web?q={query}",headers=user_agent)
